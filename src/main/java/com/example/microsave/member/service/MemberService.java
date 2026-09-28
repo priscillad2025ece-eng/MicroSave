@@ -1,0 +1,9 @@
+package com.example.microsave.member.service;
+import com.example.microsave.exception.ResourceNotFoundException; import com.example.microsave.group.repository.GroupRepository; import com.example.microsave.member.dto.MemberDTO; import com.example.microsave.member.entity.Member; import com.example.microsave.member.repository.MemberRepository; import java.time.LocalDate; import java.util.List; import org.springframework.stereotype.Service; import org.springframework.transaction.annotation.Transactional;
+@Service @Transactional public class MemberService {
+ private final MemberRepository repo; private final GroupRepository groups; public MemberService(MemberRepository r,GroupRepository g){repo=r;groups=g;}
+ private Member get(Long id){return repo.findById(id).orElseThrow(()->new ResourceNotFoundException("Member not found: "+id));}
+ private MemberDTO map(Member m){return new MemberDTO(m.getId(),m.getName(),m.getPhone(),m.getAddress(),m.getJoinDate(),m.getStatus(),m.getGroup().getId());}
+ private void copy(Member m,MemberDTO d){m.setName(d.name());m.setPhone(d.phone());m.setAddress(d.address());m.setJoinDate(d.joinDate()==null?LocalDate.now():d.joinDate());m.setStatus(d.status()==null?"ACTIVE":d.status());m.setGroup(groups.findById(d.groupId()).orElseThrow(()->new ResourceNotFoundException("Group not found: "+d.groupId())));}
+ public List<MemberDTO> all(){return repo.findAll().stream().map(this::map).toList();} public List<MemberDTO> byGroup(Long id){if(!groups.existsById(id))throw new ResourceNotFoundException("Group not found: "+id);return repo.findByGroup_Id(id).stream().map(this::map).toList();} public MemberDTO one(Long id){return map(get(id));} public MemberDTO save(MemberDTO d){Member m=new Member();copy(m,d);return map(repo.save(m));} public MemberDTO update(Long id,MemberDTO d){Member m=get(id);copy(m,d);return map(repo.save(m));} public void delete(Long id){repo.delete(get(id));}
+}
