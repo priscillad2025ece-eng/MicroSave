@@ -1,0 +1,3 @@
+package com.example.microsave.contribution.repository;
+import com.example.microsave.contribution.entity.Contribution; import java.math.BigDecimal; import java.util.List; import org.springframework.data.jpa.repository.*; import org.springframework.data.repository.query.Param;
+public interface ContributionRepository extends JpaRepository<Contribution,Long>{List<Contribution> findByMember_Id(Long memberId); @Query("select coalesce(sum(c.amount),0) from Contribution c") BigDecimal totalAll(); @Query("select coalesce(sum(c.amount),0) from Contribution c where c.member.id=:id") BigDecimal totalByMember(@Param("id") Long id); @Query("select coalesce(sum(c.amount),0) from Contribution c where c.member.group.id=:id") BigDecimal totalByGroup(@Param("id") Long id);}
